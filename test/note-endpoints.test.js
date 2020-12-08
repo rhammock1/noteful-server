@@ -2,7 +2,7 @@ const { expect } = require('chai');
 const knex = require('knex');
 const supertest = require('supertest');
 const app = require('../src/app');
-const { makeNotesArray, makeMaliciousNote } = require('./endpoint.fixtures');
+const { makeFoldersArray, makeNotesArray, makeMaliciousNote } = require('./endpoint.fixtures');
 
 describe('Notes Endpoints', function() {
   let db;
@@ -34,11 +34,17 @@ describe('Notes Endpoints', function() {
     })
     context(`Given an XSS attack note`, () => {
      const { maliciousNote, expectedNote } = makeMaliciousNote();
-
+     const testFolders = makeFoldersArray();
      beforeEach('insert malicious folder', () => {
        return db
-         .into('noteful_notes')
-         .insert([maliciousNote])
+        .into('noteful_folders')
+        .insert(testFolders)
+        .then(() => {
+          return db
+            .into('noteful_notes')
+            .insert([maliciousNote])
+        })
+         
      })
 
      it('removes XSS attack content', () => {
@@ -53,12 +59,18 @@ describe('Notes Endpoints', function() {
      })
     })
     context('Given there are notes in the database', () => {
+      const testFolders = makeFoldersArray();
       const testNotes = makeNotesArray();
 
       beforeEach('insert notes', () => {
         return db
+          .into('noteful_folders')
+          .insert(testFolders)
+          .then(() => {
+            return db
           .into('noteful_notes')
           .insert(testNotes)
+          })
       })
       it('GET /api/notes responds with 200 and all of the notes', () => {
         return supertest(app)
