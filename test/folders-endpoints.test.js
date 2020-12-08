@@ -65,7 +65,7 @@ describe('Folders Endpoints', function() {
       })
     })
   })
-  describe.only('POST /api/folders', () => {
+  describe('POST /api/folders', () => {
     context(`Given an XSS attack folder`, () => {
      const { maliciousFolder, expectedFolder } = makeMaliciousFolder();
 
@@ -103,6 +103,18 @@ describe('Folders Endpoints', function() {
             .get(`/api/folders/${postRes.body.id}`)
             .expect(postRes.body)
         )
+    })
+    it('responds with 400 and an error message when the folder_name is missing', () => {
+      const newFolder = {
+        folder_name: 'New Folder'
+      }
+      delete newFolder['folder_name']
+      return supertest(app)
+        .post('/api/folders')
+        .send(newFolder)
+        .expect(400, {
+          error: { message: 'Missing folder name in body' }
+        })
     })
   })
 
