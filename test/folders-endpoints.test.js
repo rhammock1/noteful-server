@@ -193,7 +193,7 @@ describe('Folders Endpoints', function() {
       })
     })
   })
-  describe.only(`PATCH /api/folders/:folders_id`, () => {
+  describe(`PATCH /api/folders/:folders_id`, () => {
     context('Given no folders', () => {
       it('responds with 404', () => {
         const foldersId = 123456;
@@ -203,13 +203,13 @@ describe('Folders Endpoints', function() {
 
       })
     })
-    context('Given there are folderss in the database', () => {
-      const testfolders = makeFoldersArray();
+    context('Given there are folders in the database', () => {
+      const testFolders = makeFoldersArray();
 
-      beforeEach('insert folderss', () => {
+      beforeEach('insert folders', () => {
         return db
           .into('noteful_folders')
-          .insert(testfolders)
+          .insert(testFolders)
       })
 
       it('responds with 204 and updates the folders', () => {
@@ -217,8 +217,8 @@ describe('Folders Endpoints', function() {
         const updatefolders = {
           folder_name: 'updated title'
         }
-        const expextedfolders = {
-          ...testfolders[idToUpdate - 1],
+        const expextedFolders = {
+          ...testFolders[idToUpdate - 1],
           ...updatefolders
         }
         return supertest(app)
@@ -228,13 +228,13 @@ describe('Folders Endpoints', function() {
           .then(res => 
             supertest(app)
               .get(`/api/folders/${idToUpdate}`)
-              .expect(expextedfolders)
+              .expect(expextedFolders)
           )
       })
     it(`responds with 400 when no required fields supplied`, () => {
      const idToUpdate = 2
      return supertest(app)
-       .patch(`/api/folderss/${idToUpdate}`)
+       .patch(`/api/folders/${idToUpdate}`)
        .send({ irrelevantField: 'foo' })
        .expect(400, {
          error: {
@@ -244,18 +244,18 @@ describe('Folders Endpoints', function() {
     })
         it(`responds with 204 when updating only a subset of fields`, () => {
       const idToUpdate = 2
-      const updatefolders = {
-        title: 'updated folders title',
+      const updateFolders = {
+        folder_name: 'updated folders title',
       }
       const expectedFolders = {
-        ...testfolders[idToUpdate - 1],
-        ...updatefolders
+        ...testFolders[idToUpdate - 1],
+        ...updateFolders
       }
 
       return supertest(app)
         .patch(`/api/folders/${idToUpdate}`)
         .send({
-          ...updatefolders,
+          ...updateFolders,
           fieldToIgnore: 'should not be in GET response'
         })
         .expect(204)
