@@ -220,7 +220,7 @@ describe('Notes Endpoints', function() {
       })
     })
   })
-  describe.only('DELETE /api/notes/:noteId', () => {
+  describe('DELETE /api/notes/:noteId', () => {
     context('Given no notes', () => {
       it('responds with 404', () => {
         const notesId = 123456;
@@ -253,6 +253,87 @@ describe('Notes Endpoints', function() {
               .get(`/api/notes`)
               .expect(expectedNote)
             )
+      })
+    })
+  })
+  describe(`PATCH /api/notes/:noteId`, () => {
+    context('Given no notes', () => {
+      it('responds with 404', () => {
+        const notesId = 123456;
+        return supertest(app)
+          .patch(`/api/notes/${notesId}`)
+          .expect(404, { error: { message: `Note doesn't exist` } })
+
+      })
+    })
+    context('Given there are notes in the database', () => {
+      const testFolders = makeFoldersArray();
+      const testNotes = makeNotesArray();
+      beforeEach('insert notes', () => {
+        return db
+          .into('noteful_folders')
+          .insert(testFolders)
+          .then(() => {
+            return db
+          .into('noteful_notes')
+          .insert(testNotes)
+          })
+      })
+
+      it('responds with 204 and updates the note', () => {
+        const idToUpdate = 2;
+        const updatedNote = {
+          title: 'updated title',
+          content: 'updated content',
+          folder_id: 2,
+        }
+        const expectedNote = {
+          ...testNotes[idToUpdate - 1],
+          ...updatedNote
+        }
+        return supertest(app)
+          .patch(`/api/notes/${idToUpdate}`)
+          .send(updatedNote)
+          .expect(204)
+          .then(res => 
+            supertest(app)
+              .get(`/api/notes/${idToUpdate}`)
+              .expect(expectedNote)
+          )
+      })
+    it(`responds with 400 when no required fields supplied`, () => {
+     const idToUpdate = 2
+     return supertest(app)
+       .patch(`/api/notes/${idToUpdate}`)
+       .send({ irrelevantField: 'foo' })
+       .expect(400, {
+         error: {
+           message: `Request body must contain either title, content or folder_id`
+         }
+       })
+    })
+        it(`responds with 204 when updating only a subset of fields`, () => {
+      const idToUpdate = 2
+      const updatedNote = {
+        title: 'updated note title',
+      }
+      const expectedNote = {
+        ...testNotes[idToUpdate - 1],
+        ...updatedNote
+      }
+
+      return supertest(app)
+        .patch(`/api/notes/${idToUpdate}`)
+        .send({
+          ...updatedNote,
+          fieldToIgnore: 'should not be in GET response'
+        })
+        .expect(204)
+        .then(res =>
+          supertest(app)
+            .get(`/api/notes/${idToUpdate}`)
+            .expect(expectedNote)
+        )
       })
     })
   })

@@ -82,13 +82,13 @@ foldersRouter
           error: { message: `Request body must contain folder name`}
         })
       }
-      xss(folder_name);
+      
       const folderToUpdate = { folder_name }
 
       foldersService.updateFolder(
         req.app.get('db'),
         req.params.folderId,
-        folderToUpdate
+        serializeFolder(folderToUpdate)
       )
       .then(() => {
         res.status(204).end()

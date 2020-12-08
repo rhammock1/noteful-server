@@ -117,7 +117,6 @@ describe('Folders Endpoints', function() {
         })
     })
   })
-
   describe('GET /api/folders/:folderId', () => {
     context('Given there are no folders', () => {
       it('responds with 404', () => {
