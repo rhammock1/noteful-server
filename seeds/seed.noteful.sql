@@ -2,7 +2,7 @@ TRUNCATE noteful_folders, noteful_notes RESTART IDENTITY CASCADE;
 
 INSERT INTO noteful_folders (folder_name)
 VALUES
-('Important'), ('Ideas'), ('Random-Things');
+('Important'), ('Ideas'), ('Random');
 --id 1            2             3
 
 INSERT INTO noteful_notes (title, content, folder_id)
