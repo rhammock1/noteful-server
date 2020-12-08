@@ -67,4 +67,14 @@ notesRouter
     .get((req, res, next) => {
       res.status(200).json(serializeNote(res.note))
     })
+    .delete((req, res, next) => {
+    const db = req.app.get('db');
+    notesService.deleteNote(
+      db, req.params.noteId
+    )
+      .then(() => {
+        res.status(204).end()
+      })
+      .catch(next);
+  })
   module.exports = notesRouter
