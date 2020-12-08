@@ -85,7 +85,7 @@ describe('Folders Endpoints', function() {
          })
      })
     })
-    it('Creates an article, responding with 201 and the new article', () => {
+    it('Creates an folders, responding with 201 and the new folders', () => {
       const newFolder = {
         folder_name: 'New Folder'
       }
@@ -124,7 +124,7 @@ describe('Folders Endpoints', function() {
         const folderId = 123456;
         return supertest(app)
           .get(`/api/folders/${folderId}`)
-          .expect(404, { error: { message: `Article doesn't exist` } })
+          .expect(404, { error: { message: `folders doesn't exist` } })
       })
     })
     context(`Given an XSS attack folder`, () => {
@@ -146,7 +146,7 @@ describe('Folders Endpoints', function() {
          })
      })
     })
-    context('Given there are articles in the database', () => {
+    context('Given there are folderss in the database', () => {
       const testFolders = makeFoldersArray();
 
       beforeEach('insert folders', () => {
@@ -163,13 +163,13 @@ describe('Folders Endpoints', function() {
       })
     })
   })
-  describe.only('DELETE /api/folders/:folderId', () => {
+  describe('DELETE /api/folders/:folderId', () => {
     context('Given no folders', () => {
       it('responds with 404', () => {
         const folderId = 123456;
         return supertest(app)
           .delete(`/api/folders/${folderId}`)
-          .expect(404, { error: { message: `Article doesn't exist` } })
+          .expect(404, { error: { message: `folders doesn't exist` } })
       })
     })
     context('Given there are folders in the database', () => {
@@ -190,6 +190,80 @@ describe('Folders Endpoints', function() {
               .get(`/api/folders`)
               .expect(expectedFolder)
             )
+      })
+    })
+  })
+  describe.only(`PATCH /api/folders/:folders_id`, () => {
+    context('Given no folders', () => {
+      it('responds with 404', () => {
+        const foldersId = 123456;
+        return supertest(app)
+          .patch(`/api/folders/${foldersId}`)
+          .expect(404, { error: { message: `folders doesn't exist` } })
+
+      })
+    })
+    context('Given there are folderss in the database', () => {
+      const testfolders = makeFoldersArray();
+
+      beforeEach('insert folderss', () => {
+        return db
+          .into('noteful_folders')
+          .insert(testfolders)
+      })
+
+      it('responds with 204 and updates the folders', () => {
+        const idToUpdate = 2;
+        const updatefolders = {
+          folder_name: 'updated title'
+        }
+        const expextedfolders = {
+          ...testfolders[idToUpdate - 1],
+          ...updatefolders
+        }
+        return supertest(app)
+          .patch(`/api/folders/${idToUpdate}`)
+          .send(updatefolders)
+          .expect(204)
+          .then(res => 
+            supertest(app)
+              .get(`/api/folders/${idToUpdate}`)
+              .expect(expextedfolders)
+          )
+      })
+    it(`responds with 400 when no required fields supplied`, () => {
+     const idToUpdate = 2
+     return supertest(app)
+       .patch(`/api/folderss/${idToUpdate}`)
+       .send({ irrelevantField: 'foo' })
+       .expect(400, {
+         error: {
+           message: `Request body must contain folder name`
+         }
+       })
+    })
+        it(`responds with 204 when updating only a subset of fields`, () => {
+      const idToUpdate = 2
+      const updatefolders = {
+        title: 'updated folders title',
+      }
+      const expectedFolders = {
+        ...testfolders[idToUpdate - 1],
+        ...updatefolders
+      }
+
+      return supertest(app)
+        .patch(`/api/folders/${idToUpdate}`)
+        .send({
+          ...updatefolders,
+          fieldToIgnore: 'should not be in GET response'
+        })
+        .expect(204)
+        .then(res =>
+          supertest(app)
+            .get(`/api/folders/${idToUpdate}`)
+            .expect(expectedFolders)
+        )
       })
     })
   })

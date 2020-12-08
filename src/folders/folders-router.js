@@ -54,7 +54,7 @@ foldersRouter
       .then(folder => {
         if(!folder) {
           return res.status(404).json({
-            error: { message: `Article doesn't exist` }
+            error: { message: `folders doesn't exist` }
           })
         }
         res.folder = folder;
