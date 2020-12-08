@@ -46,6 +46,17 @@ describe('Folders Endpoints', function() {
       })
     })
   })
+
+  describe.only('GET /api/folders/:folderId', () => {
+    context('Given there are no folders', () => {
+      it('responds with 404', () => {
+        const folderId = 123456;
+        return supertest(app)
+          .get(`/api/folders/${folderId}`)
+          .expect(404, { error: { message: `Article doesn't exist` } })
+      })
+    })
+  })
 })
 
     // context(`Given an XSS attack folder`, () => {
