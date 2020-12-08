@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const foldersService = require('./folders-service');
 const xss = require('xss');
 const foldersRouter = express.Router();
@@ -21,6 +22,29 @@ foldersRouter
       })
       .catch(next)
   })
+  .post(jsonParser, (req, res, next) => {
+    const folder_name = req.body.folder_name;
+    const db = req.app.get('db');
+    if(!folder_name) {
+      return res.status(400).json({
+        error: {message: `Missing folder name in body` }
+      })
+    }
+    const newFolder = { folder_name };
+    foldersService.insertFolder(
+      db,
+      newFolder
+    )
+      .then(folder => {
+          res.status(201)
+          .location(path.posix.join(req.originalUrl, `/${folder.id}`))
+          .json(serializeFolder(folder))
+      })
+      .catch(next)
+   
+    
+      
+  })
 
 foldersRouter
   .route('/:folderId')
@@ -40,6 +64,5 @@ foldersRouter
   })
   .get((req, res, next) => {
     res.status(200).json(serializeFolder(res.folder))
-    .catch(next)
   })
   module.exports = foldersRouter;

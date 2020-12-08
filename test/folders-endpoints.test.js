@@ -100,7 +100,7 @@ describe('Folders Endpoints', function() {
         })
         .then(postRes => 
           supertest(app)
-            .get(`/api/articles/${postRes.body.id}`)
+            .get(`/api/folders/${postRes.body.id}`)
             .expect(postRes.body)
         )
     })
