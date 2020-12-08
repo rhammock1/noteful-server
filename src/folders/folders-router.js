@@ -18,4 +18,27 @@ foldersRouter
       .catch(next)
   })
 
+foldersRouter
+  .route('/:folderId')
+  .all((req, res, next) => {
+    const db = req.app.get('db');
+    foldersService.getById(db, req.params.folderId)
+      .then(folder => {
+        if(!folder) {
+          return res.status(404).json({
+            error: { message: `Article doesn't exist` }
+          })
+        }
+        res.article = article;
+        next();
+      })
+      .catch(next)
+  })
+  .get((req, res, next) => {
+    res.status(200).json({
+      id: res.folder.id,
+      folder_name: xss(res.folder.folder_name)
+    })
+    .catch(next)
+  })
   module.exports = foldersRouter;
