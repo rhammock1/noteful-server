@@ -65,6 +65,46 @@ describe('Folders Endpoints', function() {
       })
     })
   })
+  describe.only('POST /api/folders', () => {
+    context(`Given an XSS attack folder`, () => {
+     const { maliciousFolder, expectedFolder } = makeMaliciousFolder();
+
+     beforeEach('insert malicious folder', () => {
+       return db
+         .into('noteful_folders')
+         .insert([maliciousFolder])
+     })
+
+     it('removes XSS attack content', () => {
+       return supertest(app)
+         .get(`/api/folders/${maliciousFolder.id}`)
+         .expect(200)
+         .expect(res => {
+           expect(res.body.folder_name).to.eql(expectedFolder.folder_name)
+           
+         })
+     })
+    })
+    it('Creates an article, responding with 201 and the new article', () => {
+      const newFolder = {
+        folder_name: 'New Folder'
+      }
+      return supertest(app)
+        .post('/api/folders')
+        .send(newFolder)
+        .expect(201)
+        .expect(res => {
+          expect(res.body.folder_name).to.eql(newFolder.folder_name)
+          expect(res.body).to.have.property('id')
+          expect(res.headers.location).to.eql(`/api/folders/${res.body.id}`)
+        })
+        .then(postRes => 
+          supertest(app)
+            .get(`/api/articles/${postRes.body.id}`)
+            .expect(postRes.body)
+        )
+    })
+  })
 
   describe('GET /api/folders/:folderId', () => {
     context('Given there are no folders', () => {
@@ -94,7 +134,7 @@ describe('Folders Endpoints', function() {
          })
      })
     })
-    context('Given there are articels in the database', () => {
+    context('Given there are articles in the database', () => {
       const testFolders = makeFoldersArray();
 
       beforeEach('insert folders', () => {
