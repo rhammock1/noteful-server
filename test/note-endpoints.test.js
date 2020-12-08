@@ -86,11 +86,11 @@ describe('Notes Endpoints', function() {
      beforeEach('insert malicious note', () => {
        return db
          .into('noteful_folders')
-         .insert([testFolders])
+         .insert(testFolders)
          .then(() => {
            return db
          .into('noteful_notes')
-         .insert([maliciousNote])
+         .insert(maliciousNote)
          })
      })
 
@@ -104,7 +104,19 @@ describe('Notes Endpoints', function() {
          })
      })
     })
-    it('Creates a note, responding with 201 and the new note', () => {
+    context('Creates a note when there is a folder matching the folder_id', () => {
+      const testFolder = {
+        id: 1,
+        folder_name: 'Test Folder'
+      }
+
+      beforeEach('insert folder', () => {
+        return db
+          .into('noteful_folders')
+          .insert(testFolder);
+      })
+
+      it('Creates a note, responding with 201 and the new note', () => {
       const newNote = {
         title: 'New Note',
         folder_id: 1,
@@ -116,19 +128,22 @@ describe('Notes Endpoints', function() {
         .send(newNote)
         .expect(201)
         .expect(res => {
-          expect(res.body.title).to.eql(newFolder.title)
-          expect(res.body.content).to.eql(newFolder.content)
+          expect(res.body.title).to.eql(newNote.title)
+          expect(res.body.content).to.eql(newNote.content)
           expect(res.body).to.have.property('id')
           expect(res.body).to.have.property('folder_id')
           expect(res.body).to.have.property('date_published')
           expect(res.headers.location).to.eql(`/api/notes/${res.body.id}`)
         })
-        .then(postRes => 
+        .then(res => 
+        // console.log(res)
           supertest(app)
-            .get(`/api/notes/${postRes.body.id}`)
-            .expect(postRes.body)
+            .get(`/api/notes/${res.body.id}`)
+            .expect(res.body)
         )
     })
+    })
+    
     const requiredFields = ['title', 'content', 'folder_id']
     requiredFields.forEach(field => {
       const newNote = {

@@ -25,5 +25,27 @@ notesRouter
       })
       .catch(next)
   })
+  .post(jsonParser, (req, res, next) => {
+    const { title, content, folder_id } = req.body;
+    const db = req.app.get('db');
+    const newNote = { title, content, folder_id };
+    for(const [key, value] of Object.entries(newNote)) {
+       if(value == null) {
+      return res.status(400).json({
+        error: {message: `Missing '${key}' in body` }
+      })
+    }
+    }
+    notesService.insertNote(
+      db,
+      newNote
+    )
+      .then(note => {
+          res.status(201)
+          .location(path.posix.join(req.originalUrl, `/${note.id}`))
+          .json(serializeNote(note))
+      })
+      .catch(next)
+  })
 
   module.exports = notesRouter
