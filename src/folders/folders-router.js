@@ -4,16 +4,20 @@ const xss = require('xss');
 const foldersRouter = express.Router();
 const jsonParser = express.json();
 
+const serializeFolder = function(folder) {
+  return {
+  id: folder.id,
+  folder_name: xss(folder.folder_name),
+}
+
+}
 foldersRouter
   .route('/')
   .get((req, res, next) => {
     const db = req.app.get('db')
     foldersService.getAllFolders(db)
       .then(folders => {
-        folders.forEach(folder => {
-          xss(folder.folder_name)
-        })
-        res.status(200).json(folders)
+        res.json(folders.map(serializeFolder))
       })
       .catch(next)
   })
@@ -29,16 +33,13 @@ foldersRouter
             error: { message: `Article doesn't exist` }
           })
         }
-        res.article = article;
+        res.folder = folder;
         next();
       })
       .catch(next)
   })
   .get((req, res, next) => {
-    res.status(200).json({
-      id: res.folder.id,
-      folder_name: xss(res.folder.folder_name)
-    })
+    res.status(200).json(serializeFolder(res.folder))
     .catch(next)
   })
   module.exports = foldersRouter;
