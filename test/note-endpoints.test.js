@@ -136,7 +136,6 @@ describe('Notes Endpoints', function() {
           expect(res.headers.location).to.eql(`/api/notes/${res.body.id}`)
         })
         .then(res => 
-        // console.log(res)
           supertest(app)
             .get(`/api/notes/${res.body.id}`)
             .expect(res.body)
