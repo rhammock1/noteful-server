@@ -79,7 +79,7 @@ describe('Notes Endpoints', function() {
       })
     })
   })
-  describe.only('POST /api/notes', () => {
+  describe('POST /api/notes', () => {
     context(`Given an XSS attack note`, () => {
      const { maliciousNote, expectedNote } = makeMaliciousNote();
       const testFolders = makeFoldersArray();
@@ -161,6 +161,62 @@ describe('Notes Endpoints', function() {
         .expect(400, {
           error: { message: `Missing '${field}' in body` }
         })
+      })
+    })
+  })
+  describe('GET /api/notes/:noteId', () => {
+    context('Given there are no notes', () => {
+      it('responds with 404', () => {
+        const noteId = 123456;
+        return supertest(app)
+          .get(`/api/notes/${noteId}`)
+          .expect(404, { error: { message: `Note doesn't exist` } })
+      })
+    })
+    context(`Given an XSS attack folder`, () => {
+     const { maliciousNote, expectedNote } = makeMaliciousNote();
+    const testFolders = makeFoldersArray();
+     beforeEach('insert malicious folder', () => {
+       return db
+         .into('noteful_folders')
+         .insert(testFolders)
+         .then(() => {
+           return db
+         .into('noteful_notes')
+         .insert(maliciousNote)
+         })
+     })
+
+     it('removes XSS attack content', () => {
+       return supertest(app)
+         .get(`/api/notes/${maliciousNote.id}`)
+         .expect(200)
+         .expect(res => {
+           expect(res.body.title).to.eql(expectedNote.title)
+           expect(res.body.content).to.eql(expectedNote.content)
+           
+         })
+     })
+    })
+    context('Given there are notes in the database', () => {
+      const testFolders = makeFoldersArray();
+      const testNotes = makeNotesArray();
+      beforeEach('insert Notes', () => {
+        return db
+          .into('noteful_folders')
+          .insert(testFolders)
+          .then(() => {
+            return db
+          .into('noteful_notes')
+          .insert(testNotes)
+          })
+      })
+      it(`GET /api/notes/:noteId responds with 200 and the specified note`, () =>{
+        const noteId = 2;
+        const expectedNote = testNotes[noteId - 1];
+        return supertest(app)
+          .get(`/api/notes/${noteId}`)
+          .expect(200, expectedNote)
       })
     })
   })
